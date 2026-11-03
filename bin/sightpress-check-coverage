@@ -1,0 +1,31 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+// Fails unless line coverage in a PHPUnit Clover report is at least 95%.
+// The threshold is fixed: it can be raised by a caller, never lowered.
+// Usage: vendor/bin/sightpress-check-coverage [clover.xml]
+
+const MINIMUM_COVERAGE = 95.0;
+
+$file = $argv[1] ?? 'var/coverage/clover.xml';
+
+$xml = is_file($file) ? simplexml_load_file($file) : false;
+if (false === $xml) {
+    fwrite(\STDERR, "Cannot read coverage report \"$file\". Run PHPUnit with --coverage-clover first.\n");
+    exit(2);
+}
+
+$metrics = $xml->project->metrics;
+$statements = (int) $metrics['statements'];
+$covered = (int) $metrics['coveredstatements'];
+if (0 === $statements) {
+    echo "Line coverage: no executable statements in the report, nothing to cover\nPassed\n";
+    exit(0);
+}
+
+$percent = $covered / $statements * 100;
+printf("Line coverage: %.2f%% (%d/%d), required: %.2f%%\n", $percent, $covered, $statements, MINIMUM_COVERAGE);
+echo $percent >= MINIMUM_COVERAGE ? "Passed\n" : "Failed\n";
+exit($percent >= MINIMUM_COVERAGE ? 0 : 1);

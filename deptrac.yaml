@@ -1,0 +1,54 @@
+deptrac:
+  paths:
+    - ./src
+  layers:
+    - name: Value
+      collectors:
+        - { type: classLike, value: '^SightPress\\Plugin\\Core\\Value\\.*' }
+    - name: Dto
+      collectors:
+        - { type: classLike, value: '^SightPress\\Plugin\\Core\\Dto\\.*' }
+    - name: Event
+      collectors:
+        - { type: classLike, value: '^SightPress\\Plugin\\Core\\Event\\.*' }
+    - name: Settings
+      collectors:
+        - { type: classLike, value: '^SightPress\\Plugin\\Core\\Settings\\.*' }
+    - name: ExtensionPoint
+      collectors:
+        - { type: classLike, value: '^SightPress\\Plugin\\Core\\ExtensionPoint\\.*' }
+    - name: Attribute
+      collectors:
+        - { type: classLike, value: '^SightPress\\Plugin\\Core\\Attribute\\.*' }
+    - name: Port
+      collectors:
+        - { type: classLike, value: '^SightPress\\Plugin\\Core\\Port\\.*' }
+    - name: Manifest
+      collectors:
+        - { type: classLike, value: '^SightPress\\Plugin\\Core\\Manifest\\.*' }
+    - name: Plugin
+      collectors:
+        - { type: classLike, value: '^SightPress\\Plugin\\Core\\(AbstractPlugin|PluginApi)$' }
+    - name: Quality
+      collectors:
+        - { type: classLike, value: '^SightPress\\Plugin\\Core\\Quality\\.*' }
+    - name: TestKit
+      collectors:
+        - { type: classLike, value: '^SightPress\\Plugin\\Core\\TestKit\\.*' }
+    - name: Vendor
+      collectors:
+        - { type: classLike, value: '^(Symfony|PHPUnit|PhpCsFixer)\\.*' }
+  ruleset:
+    # plugin-core depends on no SightPress package, and its layers depend one way:
+    # values <- dto/settings <- extension points/ports/events <- everything else.
+    Value: [Vendor]
+    Dto: [Value]
+    Settings: []
+    Event: [Value]
+    Attribute: [Dto]
+    ExtensionPoint: [Value, Dto, Settings]
+    Port: [Value, Dto]
+    Manifest: [Value]
+    Plugin: [Manifest, Vendor]
+    Quality: [Value, Vendor]
+    TestKit: [Manifest, Quality, Value, Vendor]

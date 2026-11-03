@@ -1,0 +1,38 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+// Checks that runtime dependency licences are compatible with GPL-2.0-or-later.
+// Usage: vendor/bin/sightpress-check-licenses [project-dir]
+
+foreach ([__DIR__.'/../vendor/autoload.php', __DIR__.'/../../../autoload.php'] as $autoload) {
+    if (is_file($autoload)) {
+        require $autoload;
+        break;
+    }
+}
+
+use SightPress\Plugin\Core\Quality\LicenseChecker;
+
+$dir = $argv[1] ?? getcwd();
+$installed = $dir.'/vendor/composer/installed.json';
+$composer = $dir.'/composer.json';
+
+if (!is_file($installed) || !is_file($composer)) {
+    fwrite(\STDERR, "Failed: run composer install first (no vendor/composer/installed.json in $dir).\n");
+    exit(2);
+}
+
+$problems = new LicenseChecker()->findProblems($installed, $composer);
+
+if ([] === $problems) {
+    echo "Licence check: Passed. Every runtime dependency is compatible with GPL-2.0-or-later.\n";
+    exit(0);
+}
+
+echo "Licence check: Failed.\n";
+foreach ($problems as $problem) {
+    echo " - $problem\n";
+}
+exit(1);

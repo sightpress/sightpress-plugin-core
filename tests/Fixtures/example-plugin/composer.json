@@ -1,0 +1,22 @@
+{
+  "name": "sightpress/plugin-example",
+  "description": "A fixture plugin that exercises the plugin test kit.",
+  "type": "sightpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "sightpress/plugin-core": "^1.0"
+  },
+  "extra": {
+    "sightpress": {
+      "id": "example",
+      "api": "^1.0",
+      "bundle": "SightPress\\Plugin\\Core\\Tests\\Fixtures\\ExamplePlugin\\ExamplePlugin",
+      "requires": [],
+      "capabilities": { "example.manage": ["owner", "admin"] },
+      "routes": [],
+      "admin_routes": [],
+      "locales": ["en-GB"],
+      "outbound_hosts": []
+    }
+  }
+}

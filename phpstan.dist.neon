@@ -1,0 +1,9 @@
+includes:
+    - quality/phpstan-base.neon
+
+parameters:
+    paths:
+        - src
+        - tests
+        - bin
+    level: max

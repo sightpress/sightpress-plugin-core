@@ -1,0 +1,77 @@
+{
+  "name": "sightpress/plugin-core",
+  "description": "The code every SightPress plugin shares: the Plugin API, public value types, test kit and shared quality rules.",
+  "type": "library",
+  "license": "GPL-2.0-or-later",
+  "homepage": "https://github.com/sightpress/sightpress-plugin-core",
+  "require": {
+    "php": "^8.4",
+    "symfony/config": "^8.0",
+    "symfony/dependency-injection": "^8.0",
+    "symfony/http-kernel": "^8.0",
+    "symfony/uid": "^8.0"
+  },
+  "require-dev": {
+    "deptrac/deptrac": "^4.0",
+    "friendsofphp/php-cs-fixer": "^3.64",
+    "phpstan/extension-installer": "^1.4",
+    "phpstan/phpstan": "^2.1",
+    "phpstan/phpstan-phpunit": "^2.0",
+    "phpunit/phpunit": "^13.0",
+    "rector/rector": "^2.0"
+  },
+  "suggest": {
+    "phpunit/phpunit": "Needed to use the test kit (SightPress\\Plugin\\Core\\TestKit)"
+  },
+  "autoload": {
+    "psr-4": {
+      "SightPress\\Plugin\\Core\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "SightPress\\Plugin\\Core\\Tests\\": "tests/"
+    },
+    "classmap": [
+      "tests/Fixtures"
+    ]
+  },
+  "config": {
+    "sort-packages": true,
+    "optimize-autoloader": true,
+    "allow-plugins": {
+      "phpstan/extension-installer": true
+    }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-main": "1.0.x-dev"
+    }
+  },
+  "scripts": {
+    "test": "phpunit",
+    "test:coverage": [
+      "XDEBUG_MODE=coverage phpunit --coverage-clover var/coverage/clover.xml",
+      "@php bin/sightpress-check-coverage var/coverage/clover.xml"
+    ],
+    "stan": "phpstan analyse --memory-limit=1G",
+    "cs": "php-cs-fixer fix --dry-run --diff",
+    "cs:fix": "php-cs-fixer fix",
+    "rector": "rector process --dry-run",
+    "deptrac": "deptrac analyse --no-progress",
+    "check:licenses": "@php bin/sightpress-check-licenses",
+    "qa": [
+      "@test:coverage",
+      "@stan",
+      "@cs",
+      "@rector",
+      "@deptrac"
+    ]
+  },
+  "minimum-stability": "stable",
+  "bin": [
+    "bin/sightpress-check-coverage",
+    "bin/sightpress-check-licenses",
+    "bin/sightpress-check-translations"
+  ]
+}

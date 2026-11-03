@@ -1,0 +1,40 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+// Checks the XLIFF catalogues of one translation domain in the 13 launch locales.
+// Usage: vendor/bin/sightpress-check-translations <translations-dir> <domain> [--release]
+
+foreach ([__DIR__.'/../vendor/autoload.php', __DIR__.'/../../../autoload.php'] as $autoload) {
+    if (is_file($autoload)) {
+        require $autoload;
+        break;
+    }
+}
+
+use SightPress\Plugin\Core\Quality\XliffChecker;
+
+$args = array_values(array_filter(array_slice($argv, 1), static fn (string $a): bool => !str_starts_with($a, '--')));
+$release = in_array('--release', $argv, true);
+
+if (count($args) < 2) {
+    fwrite(\STDERR, "Usage: sightpress-check-translations <translations-dir> <domain> [--release]\n");
+    exit(2);
+}
+
+[$directory, $domain] = $args;
+$report = new XliffChecker()->check($directory, $domain);
+
+foreach ($report->problems() as $problem) {
+    echo "Problem: $problem\n";
+}
+echo sprintf("Targets waiting for review (needs-review-translation): %d\n", count($report->unreviewed()));
+
+if ($report->passes($release)) {
+    echo "Translation check for domain \"$domain\": Passed.\n";
+    exit(0);
+}
+
+echo "Translation check for domain \"$domain\": Failed".($release && [] === $report->problems() ? ' (a release cannot ship unreviewed targets)' : '').".\n";
+exit(1);

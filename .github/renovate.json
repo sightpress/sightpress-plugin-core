@@ -1,0 +1,25 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":semanticCommits"],
+  "timezone": "UTC",
+  "schedule": ["before 6am on monday"],
+  "lockFileMaintenance": { "enabled": true },
+  "packageRules": [
+    {
+      "matchManagers": ["composer"],
+      "matchPackageNames": ["sightpress/*"],
+      "groupName": "SightPress packages"
+    },
+    {
+      "matchManagers": ["composer"],
+      "matchPackageNames": ["symfony/*"],
+      "groupName": "Symfony"
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "groupName": "dev tooling",
+      "automerge": false
+    }
+  ],
+  "vulnerabilityAlerts": { "labels": ["security"] }
+}

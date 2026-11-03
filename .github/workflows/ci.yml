@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: intl, mbstring, sodium
+          coverage: xdebug
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist
+      - run: composer audit
+      - run: composer check:licenses
+      - run: composer test:coverage
+      - run: vendor/bin/phpstan analyse --memory-limit=1G
+      - run: vendor/bin/php-cs-fixer fix --dry-run --diff
+      - run: vendor/bin/rector process --dry-run
+      - run: vendor/bin/deptrac analyse --no-progress
+
+  downstream:
+    needs: quality
+    if: github.event_name == 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        repo: [core, plugin-template, plugin-ai, plugin-articles, plugin-community, plugin-forms, plugin-image-finder, plugin-import, plugin-newsletter, plugin-notifications]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: plugin-core
+      - uses: actions/checkout@v4
+        with:
+          repository: sightpress/sightpress-${{ matrix.repo }}
+          path: ${{ matrix.repo }}
+      - uses: actions/checkout@v4
+        if: matrix.repo != 'core' && matrix.repo != 'plugin-template'
+        with:
+          repository: sightpress/sightpress-core
+          path: core
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: intl, mbstring, sodium
+          coverage: none
+      - run: COMPOSER=composer.dev.json composer install --no-interaction
+        working-directory: ${{ matrix.repo }}
+      - run: vendor/bin/phpunit
+        working-directory: ${{ matrix.repo }}

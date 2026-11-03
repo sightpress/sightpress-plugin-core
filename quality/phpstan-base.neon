@@ -1,0 +1,10 @@
+parameters:
+    level: max
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: true
+    checkMissingCallableSignature: true
+    checkTooWideReturnTypesInProtectedAndPublicMethods: false
+# Shared rules for every SightPress repository. Include with:
+#   includes:
+#       - vendor/sightpress/plugin-core/quality/phpstan-base.neon
+# PHPStan extensions (phpstan-phpunit, …) load through phpstan/extension-installer.
