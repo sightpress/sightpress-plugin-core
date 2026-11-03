@@ -10,7 +10,7 @@ under **GPL-2.0-or-later**, like the rest of the project.
   change, human or AI-assisted.
 - Accessibility can't be turned off. A change that breaks the axe or pa11y gate,
   or that needs a mouse or sight, won't be merged.
-- Every UI string is translated into all 13 launch locales in the same change.
+- Every UI string is translated into all 11 launch locales in the same change.
   Machine drafts stay `state="needs-review-translation"` until a fluent
   reviewer checks them.
 - Never loosen a quality gate, a performance budget or a test to get CI green.

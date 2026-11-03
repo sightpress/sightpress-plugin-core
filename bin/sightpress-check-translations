@@ -3,8 +3,12 @@
 
 declare(strict_types=1);
 
-// Checks the XLIFF catalogues of one translation domain in the 13 launch locales.
-// Usage: vendor/bin/sightpress-check-translations <translations-dir> <domain> [--release]
+// Checks the XLIFF catalogues of one translation domain.
+// Usage: vendor/bin/sightpress-check-translations <translations-dir> <domain> [--manifest=composer.json] [--locales=en-GB,nl-NL] [--release]
+//
+// Without --manifest or --locales it checks the 11 launch locales (core and official plugins).
+// With --manifest it checks the plugin's required locales: every launch locale for an official
+// plugin, only the declared ones (plus en-GB) for a third-party plugin.
 
 foreach ([__DIR__.'/../vendor/autoload.php', __DIR__.'/../../../autoload.php'] as $autoload) {
     if (is_file($autoload)) {
@@ -13,19 +17,42 @@ foreach ([__DIR__.'/../vendor/autoload.php', __DIR__.'/../../../autoload.php'] a
     }
 }
 
+use SightPress\Plugin\Core\Manifest\ManifestReader;
 use SightPress\Plugin\Core\Quality\XliffChecker;
 
 $args = array_values(array_filter(array_slice($argv, 1), static fn (string $a): bool => !str_starts_with($a, '--')));
 $release = in_array('--release', $argv, true);
+$options = [];
+foreach (array_slice($argv, 1) as $argument) {
+    if (1 === preg_match('/^--(manifest|locales)=(.+)$/', $argument, $match)) {
+        $options[$match[1]] = $match[2];
+    }
+}
 
 if (count($args) < 2) {
-    fwrite(\STDERR, "Usage: sightpress-check-translations <translations-dir> <domain> [--release]\n");
+    fwrite(\STDERR, "Usage: sightpress-check-translations <translations-dir> <domain> [--manifest=composer.json] [--locales=en-GB,nl-NL] [--release]\n");
     exit(2);
 }
 
 [$directory, $domain] = $args;
-$report = new XliffChecker()->check($directory, $domain);
+$locales = null;
+try {
+    if (isset($options['manifest'])) {
+        $manifest = new ManifestReader()->readFile($options['manifest']);
+        $locales = $manifest->requiredLocales();
+        if ($manifest->isThirdParty() && [] !== $manifest->missingLaunchLocales()) {
+            echo sprintf("Not checked, because the plugin doesn't list them (its strings fall back to English (United Kingdom) there): %s.\n", implode(', ', $manifest->missingLaunchLocales()));
+        }
+    } elseif (isset($options['locales'])) {
+        $locales = array_values(array_filter(array_map('trim', explode(',', $options['locales']))));
+    }
+    $report = new XliffChecker()->check($directory, $domain, $locales);
+} catch (InvalidArgumentException $e) {
+    fwrite(\STDERR, 'Error: '.$e->getMessage()."\n");
+    exit(2);
+}
 
+echo sprintf("Locales checked: %s.\n", null === $locales ? 'the 11 launch locales' : implode(', ', array_values(array_unique(['en-GB', ...$locales]))));
 foreach ($report->problems() as $problem) {
     echo "Problem: $problem\n";
 }

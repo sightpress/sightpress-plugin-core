@@ -65,7 +65,7 @@ final class XliffCheckerTest extends TestCase
     public function testMissingCatalogueIsReported(): void
     {
         $this->writeAll();
-        unlink($this->dir.'/demo+intl-icu.he.xlf');
+        unlink($this->dir.'/demo+intl-icu.de.xlf');
 
         $report = new XliffChecker()->check($this->dir, 'demo');
 
@@ -126,7 +126,7 @@ final class XliffCheckerTest extends TestCase
             $this->write($language, ['n' => '{count, plural, one {# '.$language.'} many {# m} other {# '.$language.'s}}', 'hello' => 'Hallo '.$language]);
         }
 
-        $problems = new XliffChecker()->check($this->dir, 'demo')->problems();
+        $problems = new XliffChecker()->check($this->dir, 'demo', [...Locale::LAUNCH, ...Locale::RTL_TEST])->problems();
 
         self::assertContains('[ar] key "n" has a plural message without the "zero" category.', $problems);
         self::assertContains('[ar] key "n" has a plural message without the "few" category.', $problems);
@@ -154,5 +154,34 @@ final class XliffCheckerTest extends TestCase
         $problems = implode("\n", new XliffChecker()->check($this->dir, 'demo')->problems());
 
         self::assertStringContainsString('not well-formed', $problems);
+    }
+
+    public function testDeclaredLocalesAreTheOnlyOnesChecked(): void
+    {
+        $this->write('en', ['hello' => 'Hello world']);
+        $this->write('nl_NL', ['hello' => 'Hallo wereld']);
+
+        $report = new XliffChecker()->check($this->dir, 'demo', ['en-GB', 'nl-NL']);
+
+        self::assertSame([], $report->problems());
+    }
+
+    public function testTheSourceIsAlwaysChecked(): void
+    {
+        $this->write('nl_NL', ['hello' => 'Hallo wereld']);
+
+        $problems = implode("\n", new XliffChecker()->check($this->dir, 'demo', ['nl-NL'])->problems());
+
+        self::assertStringContainsString('Missing catalogue demo+intl-icu.en.xlf', $problems);
+    }
+
+    public function testRegionalCatalogueWithoutItsBaseMustBeComplete(): void
+    {
+        $this->write('en', ['hello' => 'Hello world', 'bye' => 'Goodbye']);
+        $this->write('pt_BR', ['hello' => 'Olá mundo']);
+
+        $problems = implode("\n", new XliffChecker()->check($this->dir, 'demo', ['en-GB', 'pt-BR'])->problems());
+
+        self::assertStringContainsString('[pt_BR] key "bye" is missing', $problems);
     }
 }

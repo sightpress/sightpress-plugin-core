@@ -9,11 +9,17 @@ namespace SightPress\Plugin\Core\Value;
  */
 final readonly class Locale implements \Stringable
 {
-    /** The 13 launch UI locales (PLAN §3.1). */
+    /** The 11 launch UI locales (PLAN §3.1). */
     public const array LAUNCH = [
         'en-GB', 'en-US', 'pt-PT', 'pt-BR', 'es-ES', 'es-419', 'fr-FR',
-        'fr-CA', 'it-IT', 'de-DE', 'de-CH', 'he-IL', 'ar-SA',
+        'fr-CA', 'it-IT', 'de-DE', 'de-CH',
     ];
+
+    /**
+     * The RTL test locales (PLAN §3.1): every RTL test runs in both. They are
+     * not launch UI locales, so no shipped catalogue is required for them.
+     */
+    public const array RTL_TEST = ['he-IL', 'ar-SA'];
 
     private const array RTL_LANGUAGES = ['ar', 'he', 'fa', 'ur', 'ps', 'sd', 'ug', 'yi', 'dv'];
 
@@ -92,7 +98,7 @@ final readonly class Locale implements \Stringable
         return $this->toSymfony();
     }
 
-    /** @return list<string> the 13 launch catalogue suffixes: en, en_US, pt, pt_BR, … */
+    /** @return list<string> the 11 launch catalogue suffixes: en, en_US, pt, pt_BR, … */
     public static function launchCatalogues(): array
     {
         return array_map(static fn (string $code): string => self::fromString($code)->catalogue(), self::LAUNCH);

@@ -7,6 +7,8 @@ namespace SightPress\Plugin\Core\Tests\Manifest;
 use PHPUnit\Framework\TestCase;
 use SightPress\Plugin\Core\Manifest\ManifestException;
 use SightPress\Plugin\Core\Manifest\ManifestReader;
+use SightPress\Plugin\Core\Manifest\PluginManifest;
+use SightPress\Plugin\Core\Value\Locale;
 
 final class ManifestReaderTest extends TestCase
 {
@@ -63,6 +65,23 @@ final class ManifestReaderTest extends TestCase
         self::assertTrue($manifest->isThirdParty());
         self::assertSame('acme', $manifest->vendor());
         self::assertSame('acme_event_list', $manifest->slug());
+    }
+
+    public function testOfficialPluginsMustCoverEveryLaunchLocale(): void
+    {
+        $manifest = new ManifestReader()->read($this->composer('locales', ['en-GB', 'pt-BR', 'nl-NL']));
+
+        self::assertSame([...Locale::LAUNCH, 'nl-NL'], $manifest->requiredLocales());
+        self::assertContains('de-CH', $manifest->missingLaunchLocales());
+        self::assertNotContains('pt-BR', $manifest->missingLaunchLocales());
+    }
+
+    public function testThirdPartyPluginsCoverOnlyWhatTheyDeclare(): void
+    {
+        $manifest = new PluginManifest('acme.events', 'acme/plugin-events', 'Acme\\Events\\EventsPlugin', '^1.0', 'GPL-2.0-or-later', 'Events', locales: ['nl-NL']);
+
+        self::assertSame(['en-GB', 'nl-NL'], $manifest->requiredLocales());
+        self::assertCount(11, $manifest->missingLaunchLocales());
     }
 
     public function testRefusesWrongType(): void

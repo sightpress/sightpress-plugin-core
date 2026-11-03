@@ -88,19 +88,28 @@ final class ValueTypesTest extends TestCase
         yield 'long' => ['english'];
     }
 
-    public function testThirteenLaunchLocales(): void
+    public function testElevenLaunchLocales(): void
     {
-        self::assertCount(13, Locale::LAUNCH);
+        self::assertCount(11, Locale::LAUNCH);
         foreach (Locale::LAUNCH as $code) {
             self::assertTrue(Locale::fromString($code)->isLaunchLocale());
         }
         self::assertFalse(Locale::fromString('ja-JP')->isLaunchLocale());
     }
 
+    public function testRtlTestLocalesAreRtlAndNotLaunchLocales(): void
+    {
+        foreach (Locale::RTL_TEST as $code) {
+            self::assertTrue(Locale::fromString($code)->isRtl());
+            self::assertFalse(Locale::fromString($code)->isLaunchLocale());
+        }
+        self::assertSame(['he', 'ar'], array_map(static fn (string $code): string => Locale::fromString($code)->catalogue(), Locale::RTL_TEST));
+    }
+
     public function testCatalogueNames(): void
     {
         self::assertSame(
-            ['en', 'en_US', 'pt', 'pt_BR', 'es', 'es_419', 'fr', 'fr_CA', 'it', 'de', 'de_CH', 'he', 'ar'],
+            ['en', 'en_US', 'pt', 'pt_BR', 'es', 'es_419', 'fr', 'fr_CA', 'it', 'de', 'de_CH'],
             Locale::launchCatalogues(),
         );
         self::assertSame('pt_BR', Locale::fromString('pt-BR')->toSymfony());

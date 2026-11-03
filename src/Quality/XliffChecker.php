@@ -7,10 +7,15 @@ namespace SightPress\Plugin\Core\Quality;
 use SightPress\Plugin\Core\Value\Locale;
 
 /**
- * Checks the XLIFF catalogues of a translation domain in the 13 launch locales (PLAN §3.1):
+ * Checks the XLIFF catalogues of a translation domain (PLAN §3.1). By default it
+ * checks the 11 launch locales, the bar for core and official plugins; pass a
+ * list of locales to check only those (a third-party plugin's declared
+ * locales, see PluginManifest::requiredLocales()). en-GB, the source, is
+ * always checked.
  *
- *  - every launch catalogue file exists and parses;
- *  - every key of the source catalogue (en) exists in every base catalogue, with a non-empty target;
+ *  - every checked catalogue file exists and parses;
+ *  - every key of the source catalogue (en) exists in every base catalogue, with a non-empty target
+ *    (a regional catalogue whose language base isn't checked, such as pt_BR without pt, counts as a base);
  *  - override catalogues (en_US, pt_BR, …) hold no empty targets and no unknown keys;
  *  - a base catalogue's target is not just the English source (it would fall back to another language),
  *    unless the key is listed as language-neutral in the source with a note "neutral";
@@ -31,12 +36,18 @@ final class XliffChecker
         'ar' => ['zero', 'one', 'two', 'few', 'many', 'other'],
     ];
 
-    public function check(string $directory, string $domain): TranslationReport
+    /**
+     * @param list<string>|null $locales BCP 47 codes to check; null checks the 11 launch locales
+     */
+    public function check(string $directory, string $domain, ?array $locales = null): TranslationReport
     {
         $report = new TranslationReport();
         $catalogues = [];
+        $checked = null === $locales
+            ? Locale::launchCatalogues()
+            : array_values(array_unique(['en', ...array_map(static fn (string $code): string => Locale::fromString($code)->catalogue(), $locales)]));
 
-        foreach (Locale::launchCatalogues() as $catalogue) {
+        foreach ($checked as $catalogue) {
             $file = \sprintf('%s/%s+intl-icu.%s.xlf', rtrim($directory, '/'), $domain, $catalogue);
             if (!is_file($file)) {
                 $report->addProblem(\sprintf('Missing catalogue %s (domain "%s", locale "%s").', basename($file), $domain, $catalogue));
@@ -54,8 +65,8 @@ final class XliffChecker
 
         $source = $catalogues['en'];
         foreach ($catalogues as $catalogue => $units) {
-            $isBase = !str_contains($catalogue, '_');
             $language = explode('_', $catalogue)[0];
+            $isBase = !str_contains($catalogue, '_') || !\in_array($language, $checked, true);
 
             if ($isBase) {
                 foreach ($source as $key => $unit) {

@@ -61,6 +61,32 @@ final readonly class PluginManifest
         return array_map(Locale::fromString(...), $this->locales);
     }
 
+    /**
+     * The locales whose catalogues must be complete. Official plugins cover
+     * every launch UI locale (PLAN §3.1) plus any others they declare.
+     * Third-party plugins cover only what they declare, plus en-GB, the
+     * source: a missing launch locale never blocks them.
+     *
+     * @return list<string>
+     */
+    public function requiredLocales(): array
+    {
+        $base = $this->isThirdParty() ? ['en-GB'] : Locale::LAUNCH;
+
+        return array_values(array_unique([...$base, ...$this->locales]));
+    }
+
+    /**
+     * Launch UI locales the plugin doesn't ship. Its strings fall back to
+     * en-GB there, and Admin → Plugins says so in words.
+     *
+     * @return list<string>
+     */
+    public function missingLaunchLocales(): array
+    {
+        return array_values(array_diff(Locale::LAUNCH, $this->locales));
+    }
+
     public function declaresCapability(string $capability): bool
     {
         return isset($this->capabilities[$capability]);

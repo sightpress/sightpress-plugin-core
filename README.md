@@ -124,21 +124,26 @@ vendor/bin/sightpress-check-licenses [project-dir]
 
 ### `sightpress-check-translations`
 
-Checks the XLIFF catalogues of one translation domain in the 13 launch
-locales.
+Checks the XLIFF catalogues of one translation domain. By default it checks
+the 11 launch locales (the bar for core and official plugins).
 
 ```sh
-vendor/bin/sightpress-check-translations <translations-dir> <domain> [--release]
+vendor/bin/sightpress-check-translations <translations-dir> <domain> [--manifest=composer.json] [--locales=en-GB,nl-NL] [--release]
 ```
 
 - `<translations-dir>`: directory holding the XLIFF files.
 - `<domain>`: the translation domain to check.
+- `--manifest`: check the plugin's required locales from its manifest. An
+  official plugin needs all 11 launch locales; a third-party plugin needs
+  only the locales it lists, plus `en-GB`, and the launch locales it lacks are
+  listed in words without failing the check. Plugins use this.
+- `--locales`: check these BCP 47 locales (plus `en-GB`) instead.
 - `--release`: also fails while any target is still waiting for review
   (`needs-review-translation`). Use it in release pipelines.
 
 Without `--release`, unreviewed targets are only reported.
 
-Example: `vendor/bin/sightpress-check-translations translations my_plugin --release`
+Example: `vendor/bin/sightpress-check-translations translations my_plugin --manifest=composer.json --release`
 
 ## Contributing to this package
 

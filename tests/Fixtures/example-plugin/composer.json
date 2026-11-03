@@ -15,7 +15,10 @@
       "capabilities": { "example.manage": ["owner", "admin"] },
       "routes": [],
       "admin_routes": [],
-      "locales": ["en-GB"],
+      "locales": [
+        "en-GB", "en-US", "pt-PT", "pt-BR", "es-ES", "es-419", "fr-FR",
+        "fr-CA", "it-IT", "de-DE", "de-CH"
+      ],
       "outbound_hosts": []
     }
   }

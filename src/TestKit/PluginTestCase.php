@@ -40,6 +40,7 @@ abstract class PluginTestCase extends TestCase
         self::assertTrue(class_exists($manifest->bundleClass), \sprintf('Bundle class %s must exist.', $manifest->bundleClass));
         if (!$manifest->isThirdParty()) {
             self::assertSame('sightpress/plugin-'.$manifest->id, $manifest->package, 'Official plugins are named sightpress/plugin-<id>.');
+            self::assertSame([], $manifest->missingLaunchLocales(), 'Official plugins list every launch UI locale in extra.sightpress.locales.');
         }
     }
 
@@ -65,14 +66,18 @@ abstract class PluginTestCase extends TestCase
         self::assertSame([], $offences, 'Plugins use only SightPress\\Plugin\\Core\\ and the Contract\\ namespace of plugins they require.');
     }
 
-    final public function testTranslationsCoverTheLaunchLocales(): void
+    /**
+     * Official plugins: every launch UI locale. Third-party plugins: only the
+     * locales they declare (and en-GB), so missing launch locales never fail.
+     */
+    final public function testTranslationsCoverTheRequiredLocales(): void
     {
         $directory = $this->pluginRoot().'/translations';
         if (!is_dir($directory)) {
             self::markTestSkipped('The plugin has no translations folder yet.');
         }
 
-        $report = new XliffChecker()->check($directory, $this->manifest()->slug());
+        $report = new XliffChecker()->check($directory, $this->manifest()->slug(), $this->manifest()->requiredLocales());
 
         self::assertSame([], $report->problems());
     }
