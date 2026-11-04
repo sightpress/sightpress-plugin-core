@@ -7,3 +7,6 @@ parameters:
         - tests
         - bin
     level: max
+    excludePaths:
+        # Deliberately depends on classes that don't exist: Deptrac must report it.
+        - tests/Fixtures/deptrac-plugin

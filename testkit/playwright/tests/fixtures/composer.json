@@ -1,0 +1,11 @@
+{
+  "name": "acme/fixture-plugin",
+  "extra": {
+    "sightpress": {
+      "id": "acme.fixture",
+      "routes": ["/good", "/events/{slug}"],
+      "admin_routes": ["/admin/good"],
+      "locales": ["en-GB"]
+    }
+  }
+}
