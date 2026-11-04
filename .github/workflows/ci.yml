@@ -48,14 +48,27 @@ jobs:
         with:
           repository: sightpress/sightpress-core
           path: core
-      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
+      # Repositories with no code yet have nothing to test; say so in words.
+      # Their tests run here as soon as they have a composer.json.
+      - id: code
+        working-directory: ${{ matrix.repo }}
+        run: |
+          if [ -f composer.json ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "${{ matrix.repo }}: no composer.json yet, so there are no tests to run." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - if: steps.code.outputs.present == 'true'
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
           php-version: '8.4'
           extensions: intl, mbstring, sodium
           coverage: none
-      - run: COMPOSER=composer.dev.json composer install --no-interaction
+      - if: steps.code.outputs.present == 'true'
+        run: COMPOSER=composer.dev.json composer install --no-interaction
         working-directory: ${{ matrix.repo }}
-      - run: vendor/bin/phpunit
+      - if: steps.code.outputs.present == 'true'
+        run: vendor/bin/phpunit
         working-directory: ${{ matrix.repo }}
 
   # The one required status check for branch protection.
