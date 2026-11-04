@@ -1,0 +1,41 @@
+/* Everything here follows the SightPress rules. */
+.sp-card {
+  margin-inline-start: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  margin: 0 auto 1rem;
+  inset-inline-end: 0;
+  border-start-start-radius: var(--radius);
+  border-radius: 4px;
+  text-align: start;
+  float: inline-start;
+  color: var(--color-text);
+  background: color-mix(in oklch, var(--color-surface), transparent 20%);
+  border: 1px solid currentcolor;
+  font-family: var(--font-body);
+  font: inherit;
+  white-space: nowrap;
+  background-image: url("../images/pattern.svg");
+  transition: none;
+}
+
+.sp-card:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.sp-card:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sp-card {
+    transition: transform 150ms ease-out;
+    scroll-behavior: smooth;
+  }
+}
+
+@media (forced-colors: active) {
+  .sp-card {
+    border-color: CanvasText;
+  }
+}

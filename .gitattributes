@@ -10,6 +10,12 @@
 /.php-cs-fixer.dist.php export-ignore
 /rector.php export-ignore
 /deptrac.yaml export-ignore
+/package.json export-ignore
+/package-lock.json export-ignore
+/playwright.config.ts export-ignore
+/tsconfig.json export-ignore
+/quality/stylelint/tests export-ignore
+/testkit/playwright/tests export-ignore
 
 *.png binary
 *.jpg binary

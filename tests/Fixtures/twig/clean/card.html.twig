@@ -1,0 +1,19 @@
+{# Follows every rule. #}
+{% extends '@SightPressCore/admin/layout.html.twig' %}
+{% block body %}
+<!doctype html>
+<article class="sp-card" aria-labelledby="card-{{ item.id }}">
+  <h2 id="card-{{ item.id }}">{{ item.title }}</h2>
+  <img src="{{ asset('images/icon.svg') }}" alt="{{ 'example.icon_alt'|trans }}" width="24" height="24">
+  <div class="body">{{ item.body_html|raw }}</div>
+  <div class="body">{{ translation.body_html | raw }}</div>
+  <a href="{{ path('example_show', {id: item.id}) }}" tabindex="0">{{ 'example.read_more'|trans({'%title%': item.title}) }}&nbsp;&rarr;</a>
+  <button type="button" data-action="example#toggle" aria-label="{{ 'example.toggle'|trans }}">&times;</button>
+  <input type="submit" value="{{ 'example.save'|trans }}">
+  <meta name="viewport" content="width=device-width">
+  <script src="{{ asset('controllers/example.js') }}"></script>
+  <script type="application/ld+json">{{ structured_data }}</script>
+  <style>.sp-card { color: var(--color-text); }</style>
+  {{ '<p>Not text</p>' }}
+</article>
+{% endblock %}

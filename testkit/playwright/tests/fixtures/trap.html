@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en-GB">
+<head><title>Trap</title></head>
+<body>
+  <a href="#main">Skip to main content</a>
+  <main id="main"><h1>Trap</h1><input aria-label="Trap" id="t"><button>After</button></main>
+  <script>
+    document.getElementById('t').addEventListener('keydown', (e) => { if (e.key === 'Tab') e.preventDefault(); });
+  </script>
+</body>
+</html>

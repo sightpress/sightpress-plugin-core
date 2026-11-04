@@ -9,6 +9,6 @@ require __DIR__.'/vendor/autoload.php';
 
 $finder = Finder::create()
     ->in([__DIR__.'/src', __DIR__.'/tests'])
-    ->append([__DIR__.'/bin/sightpress-check-licenses', __DIR__.'/bin/sightpress-check-translations']);
+    ->append([__DIR__.'/bin/sightpress-check-licenses', __DIR__.'/bin/sightpress-check-translations', __DIR__.'/bin/sightpress-lint-twig']);
 
 return CsFixerRules::config($finder);

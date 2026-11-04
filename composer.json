@@ -34,6 +34,9 @@
     },
     "classmap": [
       "tests/Fixtures"
+    ],
+    "exclude-from-classmap": [
+      "tests/Fixtures/deptrac-plugin/"
     ]
   },
   "config": {
@@ -60,18 +63,21 @@
     "rector": "rector process --dry-run",
     "deptrac": "deptrac analyse --no-progress",
     "check:licenses": "@php bin/sightpress-check-licenses",
+    "lint:twig": "@php bin/sightpress-lint-twig tests/Fixtures/twig/clean",
     "qa": [
       "@test:coverage",
       "@stan",
       "@cs",
       "@rector",
-      "@deptrac"
+      "@deptrac",
+      "@lint:twig"
     ]
   },
   "minimum-stability": "stable",
   "bin": [
     "bin/sightpress-check-coverage",
     "bin/sightpress-check-licenses",
-    "bin/sightpress-check-translations"
+    "bin/sightpress-check-translations",
+    "bin/sightpress-lint-twig"
   ]
 }
