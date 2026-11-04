@@ -1,0 +1,6 @@
+# A plugin's deptrac.yaml, as plugin-template writes it (path adjusted for the fixture).
+imports:
+  - ../../../quality/deptrac/plugin.yaml
+parameters:
+  sightpress.plugin_namespace: 'Acme\\Events'
+  sightpress.required_contracts: '^SightPress\\Plugin\\Ai\\Contract\\.*'

@@ -1,35 +1,34 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
+  push:
+    branches: [main, 'next', '[0-9]+.[0-9]+']
 
 permissions:
   contents: read
 
 jobs:
-  quality:
+  pr-title:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: intl, mbstring, sodium
-          coverage: xdebug
-          tools: composer:v2
-      - run: composer install --no-interaction --prefer-dist
-      - run: composer audit
-      - run: composer check:licenses
-      - run: composer test:coverage
-      - run: vendor/bin/phpstan analyse --memory-limit=1G
-      - run: vendor/bin/php-cs-fixer fix --dry-run --diff
-      - run: vendor/bin/rector process --dry-run
-      - run: vendor/bin/deptrac analyse --no-progress
+      - name: Conventional Commits title (PRs are squash-merged)
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if ! printf '%s' "$TITLE" | grep -Eq '^(feat|fix|perf|refactor|docs|test|ci|build|chore|revert)(\([a-z0-9._-]+\))?!?: .+'; then
+            echo "::error::The pull request title must follow Conventional Commits, for example 'fix: handle empty alt text'."
+            exit 1
+          fi
 
+  qa:
+    uses: sightpress/.github/.github/workflows/php-qa.yml@main
+
+  # A public change here needs green runs of core, plugin-template and every
+  # official plugin (RELEASING.md §7).
   downstream:
-    needs: quality
+    needs: qa
     if: github.event_name == 'pull_request'
     strategy:
       fail-fast: false
@@ -37,24 +36,54 @@ jobs:
         repo: [core, plugin-template, plugin-ai, plugin-articles, plugin-community, plugin-forms, plugin-image-finder, plugin-import, plugin-newsletter, plugin-notifications]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           path: plugin-core
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: sightpress/sightpress-${{ matrix.repo }}
           path: ${{ matrix.repo }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         if: matrix.repo != 'core' && matrix.repo != 'plugin-template'
         with:
           repository: sightpress/sightpress-core
           path: core
-      - uses: shivammathur/setup-php@v2
+      # Repositories with no code yet have nothing to test; say so in words.
+      # Their tests run here as soon as they have a composer.json.
+      - id: code
+        working-directory: ${{ matrix.repo }}
+        run: |
+          if [ -f composer.json ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "${{ matrix.repo }}: no composer.json yet, so there are no tests to run." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - if: steps.code.outputs.present == 'true'
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
         with:
           php-version: '8.4'
           extensions: intl, mbstring, sodium
           coverage: none
-      - run: COMPOSER=composer.dev.json composer install --no-interaction
+      - if: steps.code.outputs.present == 'true'
+        run: COMPOSER=composer.dev.json composer install --no-interaction
         working-directory: ${{ matrix.repo }}
-      - run: vendor/bin/phpunit
+      - if: steps.code.outputs.present == 'true'
+        run: vendor/bin/phpunit
         working-directory: ${{ matrix.repo }}
+
+  # The one required status check for branch protection.
+  qa-gate:
+    if: always()
+    needs: [qa, pr-title, downstream]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every required job passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
+              echo "::error::A required job finished with: $result"
+              exit 1
+            fi
+          done

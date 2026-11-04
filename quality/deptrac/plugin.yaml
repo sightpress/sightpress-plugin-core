@@ -1,0 +1,86 @@
+# The shared Deptrac layers for every SightPress plugin (plugins.md §4).
+#
+# A plugin's deptrac.yaml imports this file and sets its namespace:
+#
+#   imports:
+#     - vendor/sightpress/plugin-core/quality/deptrac/plugin.yaml
+#   parameters:
+#     sightpress.plugin_namespace: 'SightPress\\Plugin\\Events'
+#     # Only for plugins with `requires`: the Contract\ namespaces they may use, as one regex.
+#     sightpress.required_contracts: '^SightPress\\Plugin\\(Ai|Forms)\\Contract\\.*'
+#
+# The rules:
+#   - plugin code uses only the Plugin API (SightPress\Plugin\Core\, without the
+#     dev-only TestKit and Quality namespaces) and the Contract\ namespace of the
+#     plugins it requires;
+#   - nothing may use SightPress\Core\ or another plugin's internals;
+#   - inside the plugin: Contract <- Domain <- Application <- Infrastructure / UI,
+#     and the plugin bundle class at the root ties them together.
+# Code outside these layers (in vendor packages Deptrac doesn't know) is not
+# checked; add a layer for a library before the plugin depends on it.
+
+parameters:
+  sightpress.plugin_namespace: 'SightPress\\Plugin\\Unnamed'
+  sightpress.required_contracts: '^$'
+
+deptrac:
+  paths:
+    - ./src
+  exclude_files:
+    - '#.*Tests?/.*#'
+  layers:
+    - name: Plugin
+      collectors:
+        - { type: classLike, value: '^%sightpress.plugin_namespace%\\[A-Za-z0-9_]+$' }
+    - name: Contract
+      collectors:
+        - { type: classLike, value: '^%sightpress.plugin_namespace%\\Contract\\.*' }
+    - name: Domain
+      collectors:
+        - { type: classLike, value: '^%sightpress.plugin_namespace%\\Domain\\.*' }
+    - name: Application
+      collectors:
+        - { type: classLike, value: '^%sightpress.plugin_namespace%\\Application\\.*' }
+    - name: Infrastructure
+      collectors:
+        - { type: classLike, value: '^%sightpress.plugin_namespace%\\Infrastructure\\.*' }
+    - name: UI
+      collectors:
+        - { type: classLike, value: '^%sightpress.plugin_namespace%\\UI\\.*' }
+    - name: PluginApi
+      collectors:
+        - type: bool
+          must:
+            - { type: classLike, value: '^SightPress\\Plugin\\Core\\.*' }
+          must_not:
+            - { type: classLike, value: '^SightPress\\Plugin\\Core\\(TestKit|Quality)\\.*' }
+    - name: RequiredContract
+      collectors:
+        - { type: classLike, value: '%sightpress.required_contracts%' }
+    # Dev-only parts of plugin-core: tests use them, plugin code never does.
+    - name: PluginCoreDev
+      collectors:
+        - { type: classLike, value: '^SightPress\\Plugin\\Core\\(TestKit|Quality)\\.*' }
+    # No layer may depend on these two.
+    - name: Core
+      collectors:
+        - { type: classLike, value: '^SightPress\\Core\\.*' }
+    - name: OtherPlugin
+      collectors:
+        - type: bool
+          must:
+            - { type: classLike, value: '^SightPress\\Plugin\\.*' }
+          must_not:
+            - { type: classLike, value: '^SightPress\\Plugin\\Core\\.*' }
+            - { type: classLike, value: '^%sightpress.plugin_namespace%\\.*' }
+            - { type: classLike, value: '%sightpress.required_contracts%' }
+    - name: Vendor
+      collectors:
+        - { type: classLike, value: '^(Symfony|Doctrine|Twig|Psr|Monolog)\\.*' }
+  ruleset:
+    Plugin: [Contract, Domain, Application, Infrastructure, UI, PluginApi, Vendor]
+    Contract: [PluginApi, Vendor]
+    Domain: [Contract, PluginApi, Vendor]
+    Application: [Domain, Contract, PluginApi, RequiredContract, Vendor]
+    Infrastructure: [Application, Domain, Contract, PluginApi, RequiredContract, Vendor]
+    UI: [Application, Domain, Contract, PluginApi, RequiredContract, Vendor]

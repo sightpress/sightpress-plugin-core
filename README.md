@@ -8,7 +8,8 @@ Its version is the Plugin API version: Plugin API 1.0 is
 `sightpress/plugin-core` 1.0.
 
 > **Status:** M0 scaffolding complete: Plugin API 1.0 surface, value types,
-> manifest reader, settings schema builder, test kit and shared quality rules.
+> manifest reader, settings schema builder, test kit (with Playwright + axe
+> helpers) and shared quality rules (Twig lint, stylelint rules, Deptrac layers).
 
 ## What is a plugin?
 
@@ -40,10 +41,12 @@ personal-data features; structured data; and adapters such as SMS providers.
   and the settings-schema builder.
 - **Test kit:** `PluginTestCase` (site isolation, plugin-disabled checks,
   XLIFF coverage, round-trip, security and query-count checks) plus Playwright
-  and axe helpers.
-- **Shared quality rules:** PHPStan rules, Twig and stylelint checks, Deptrac
-  layers, the PHP-CS-Fixer ruleset, and `vendor/bin/sightpress-check-coverage`,
-  which fails QA below 95% line coverage (the threshold can't be lowered).
+  and axe helpers (`testkit/playwright/`).
+- **Shared quality rules:** PHPStan rules, the Twig lint
+  (`vendor/bin/sightpress-lint-twig`), stylelint rules
+  (`quality/stylelint/`), Deptrac layers (`quality/deptrac/plugin.yaml`), the
+  PHP-CS-Fixer ruleset, and `vendor/bin/sightpress-check-coverage`, which fails
+  QA below 95% line coverage (the threshold can't be lowered).
 
 ## Creating a plugin
 
@@ -144,6 +147,108 @@ vendor/bin/sightpress-check-translations <translations-dir> <domain> [--manifest
 Without `--release`, unreviewed targets are only reported.
 
 Example: `vendor/bin/sightpress-check-translations translations my_plugin --manifest=composer.json --release`
+
+### `sightpress-lint-twig`
+
+Lints every `*.twig` file under the given directories (default `templates`).
+Each problem is printed as `file:line: [rule] what is wrong and what to do`.
+
+```sh
+vendor/bin/sightpress-lint-twig [templates-dir ...]
+```
+
+- `raw-filter`: `|raw`, `{% apply raw %}` and `{% autoescape false %}`. Only
+  the core's sanitised `body_html` may be printed raw.
+- `hard-coded-string`: text, and `alt`, `title`, `aria-label`, `placeholder`
+  and other attributes people read or hear, written into the template instead
+  of coming from translations.
+- `inline-script`: inline `<script>`, `on*` attributes and `javascript:` URLs,
+  which the strict content security policy refuses.
+- `third-party-resource`: scripts, stylesheets and fonts from another host.
+- `positive-tabindex`: `tabindex` above 0, which breaks the focus order.
+
+No rule can be turned off inside a template.
+
+## Playwright + axe helpers
+
+TypeScript helpers in `testkit/playwright/`, for the plugin's browser tests.
+They need `@playwright/test` and `@axe-core/playwright` in the plugin's
+`package.json`, and never load their own copy of `@playwright/test`: pass in
+your `test`. No helper can turn an axe rule off.
+
+```ts
+import { test } from '@playwright/test';
+import { defineRouteSuite } from '../vendor/sightpress/plugin-core/testkit/playwright/index.ts';
+
+defineRouteSuite({
+  test,
+  manifest: new URL('../composer.json', import.meta.url),
+  fixtures: new URL('./fixtures.json', import.meta.url),
+  // Optional: also run every route in he-IL and ar-SA, which must be dir="rtl".
+  localise: (url, locale) => `/${locale}${url}`,
+});
+```
+
+`defineRouteSuite` tests every public and admin route in the manifest on the
+site at `SIGHTPRESS_BASE_URL` (it skips with a reason when that isn't set):
+WCAG 2.2 AA with axe, page structure, reflow at 320 CSS pixels and a clean
+keyboard journey. Routes with `{parameters}` need a URL in `e2e/fixtures.json`;
+a route without one fails the suite instead of going untested.
+
+For your own specs:
+
+- `assertNoA11yViolations(page, { include? })`: axe with the WCAG 2.2 AA tags;
+  fails with every violation described in words.
+- `assertPageStructure(page, { lang?, dir? })`: `lang`/`dir`, a title, one
+  `h1`, heading order, the banner, navigation, main and footer landmarks, and a
+  skip link first.
+- `assertReflows(page)`: no sideways scrolling at 320 CSS pixels.
+- `assertKeyboardJourney(page)` / `tabThrough(page)`: presses Tab through the
+  page and reports invisible focus, focus off screen and keyboard traps; the
+  stops make a tab-order snapshot
+  (`expect(journey.stops.map((s) => s.name)).toMatchSnapshot()`).
+- `tabTo(page, 'button "Save"')`: moves focus with Tab only, for keyboard-only
+  journeys.
+- `LAUNCH_LOCALES`, `RTL_TEST_LOCALES`, `TEXT_EXPANSION_LOCALE`.
+
+## Stylelint rules
+
+`quality/stylelint/config.mjs` holds the shared stylelint configuration:
+logical properties only, colours and fonts from theme tokens only, no
+third-party URLs, motion only without a reduced-motion preference, and no
+removing the focus outline. See
+[`quality/stylelint/README.md`](quality/stylelint/README.md).
+
+## Deptrac layers
+
+`quality/deptrac/plugin.yaml` holds the layers and rules every plugin shares.
+A plugin's `deptrac.yaml` imports it and names its namespace:
+
+```yaml
+imports:
+  - vendor/sightpress/plugin-core/quality/deptrac/plugin.yaml
+parameters:
+  sightpress.plugin_namespace: 'SightPress\\Plugin\\Events'
+  # Only with `requires`: the Contract\ namespaces the plugin may use, as one regex.
+  sightpress.required_contracts: '^SightPress\\Plugin\\Ai\\Contract\\.*'
+```
+
+Plugin code may use the Plugin API (not the dev-only `TestKit` and `Quality`
+namespaces) and the `Contract\` namespace of required plugins, never
+`SightPress\Core\` or another plugin's internals. Inside the plugin, `Domain`
+uses only `Contract`, and `Application`, `Infrastructure` and `UI` build on
+`Domain`.
+
+## Developing this package
+
+PHP checks run with `composer qa`. The JavaScript parts are tested with Node
+22.18 or later:
+
+```sh
+npm ci
+npx playwright install chromium
+npm test        # unit tests, type check, browser tests
+```
 
 ## Contributing to this package
 

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en-GB" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Summer fair – Example site</title>
+  <style>
+    body { margin: 0; font: 1rem/1.5 system-ui, sans-serif; color: #1a1a1a; background: #fff; }
+    a, button { color: #00449e; }
+    :focus-visible { outline: 3px solid #00449e; outline-offset: 2px; }
+    .skip { position: absolute; inset-inline-start: 0.5rem; inset-block-start: -3rem; }
+    .skip:focus { inset-block-start: 0.5rem; }
+    header, main, footer { padding: 1rem; }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header>
+    <nav aria-label="Main menu"><ul><li><a href="/good">Home</a></li><li><a href="/events/summer-fair">Events</a></li></ul></nav>
+  </header>
+  <main id="main" tabindex="-1">
+    <h1>Summer fair</h1>
+    <h2>When</h2>
+    <p>Saturday, 12 July, from 10:00 to 16:00.</p>
+    <form action="/good" method="post">
+      <label for="email">Email address (required)</label>
+      <input id="email" name="email" type="email" autocomplete="email" required>
+      <button type="submit">Send me a reminder</button>
+    </form>
+  </main>
+  <footer><nav aria-label="Legal"><a href="/privacy">Privacy policy</a></nav></footer>
+</body>
+</html>

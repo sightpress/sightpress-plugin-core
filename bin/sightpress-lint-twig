@@ -1,0 +1,43 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+// Lints Twig templates: |raw outside body_html, hard-coded text, inline scripts,
+// third-party resources and positive tabindex.
+// Usage: vendor/bin/sightpress-lint-twig [templates-dir ...]   (default: templates)
+
+foreach ([__DIR__.'/../vendor/autoload.php', __DIR__.'/../../../autoload.php'] as $autoload) {
+    if (is_file($autoload)) {
+        require $autoload;
+        break;
+    }
+}
+
+use SightPress\Plugin\Core\Quality\TwigLinter;
+
+$directories = array_values(array_slice($argv, 1));
+if (in_array('--help', $directories, true)) {
+    echo "Usage: sightpress-lint-twig [templates-dir ...]\n";
+    exit(0);
+}
+if ([] === $directories) {
+    $directories = ['templates'];
+}
+
+try {
+    $result = new TwigLinter()->lintDirectories($directories);
+} catch (InvalidArgumentException $e) {
+    fwrite(\STDERR, 'Error: '.$e->getMessage()."\n");
+    exit(2);
+}
+
+foreach ($result['findings'] as $finding) {
+    echo $finding, "\n";
+}
+
+$problems = count($result['findings']);
+$files = $result['files'];
+$summary = sprintf('%d %s checked, %d %s', $files, 1 === $files ? 'template' : 'templates', $problems, 1 === $problems ? 'problem' : 'problems');
+echo 0 === $problems ? "Twig check: Passed ($summary).\n" : "Twig check: Failed ($summary).\n";
+exit(0 === $problems ? 0 : 1);
