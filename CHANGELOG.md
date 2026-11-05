@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/sightpress/sightpress-plugin-core/compare/v1.2.0...v1.2.1) (2026-11-05)
+
+
+### Bug fixes
+
+* load the project's autoloader in the bin scripts when plugin-core is a symlinked path repository ([#7](https://github.com/sightpress/sightpress-plugin-core/issues/7)) ([22418e6](https://github.com/sightpress/sightpress-plugin-core/commit/22418e6ace47d2bc3f574db986ebd909c791ac09))
+
 ## [1.2.0](https://github.com/sightpress/sightpress-plugin-core/compare/v1.1.0...v1.2.0) (2026-11-05)
 
 
