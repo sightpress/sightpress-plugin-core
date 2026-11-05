@@ -40,7 +40,9 @@ personal-data features; structured data; and adapters such as SMS providers.
 - **Base classes:** `AbstractPlugin` (bundle base class and manifest reader)
   and the settings-schema builder.
 - **Test kit:** `PluginTestCase` (site isolation, plugin-disabled checks,
-  XLIFF coverage, round-trip, security and query-count checks) plus Playwright
+  XLIFF coverage, round-trip, security and query-count checks),
+  `AccessibleHtmlAssertions` (page structure, labels, the error summary,
+  `aria-describedby` and focus targets in any `WebTestCase`) plus Playwright
   and axe helpers (`testkit/playwright/`).
 - **Shared quality rules:** PHPStan rules, the Twig lint
   (`vendor/bin/sightpress-lint-twig`), stylelint rules
