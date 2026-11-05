@@ -10,8 +10,10 @@ declare(strict_types=1);
 // With --manifest it checks the plugin's required locales: every launch locale for an official
 // plugin, only the declared ones (plus en-GB) for a third-party plugin.
 
-foreach ([__DIR__.'/../vendor/autoload.php', __DIR__.'/../../../autoload.php'] as $autoload) {
-    if (is_file($autoload)) {
+// Composer's vendor/bin proxy names the project's autoloader; it is the only reliable
+// path when this package is a symlinked path repository (sibling checkouts, plugin CI).
+foreach ([$GLOBALS['_composer_autoload_path'] ?? null, __DIR__.'/../vendor/autoload.php', __DIR__.'/../../../autoload.php'] as $autoload) {
+    if (is_string($autoload) && is_file($autoload)) {
         require $autoload;
         break;
     }
