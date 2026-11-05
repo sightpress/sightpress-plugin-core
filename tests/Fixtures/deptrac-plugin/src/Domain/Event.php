@@ -6,10 +6,10 @@ namespace Acme\Events\Domain;
 
 use Acme\Events\UI\Controller;
 use SightPress\Core\Content\Domain\Content;
-use SightPress\Plugin\Ai\Contract\Ai;
+use SightPress\Plugin\AiHelper\Contract\Ai;
 use SightPress\Plugin\Core\TestKit\PluginTestCase;
 use SightPress\Plugin\Core\Value\SiteId;
-use SightPress\Plugin\Forms\Domain\Form;
+use SightPress\Plugin\FormBuilder\Domain\Form;
 
 final readonly class Event
 {

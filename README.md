@@ -34,7 +34,7 @@ personal-data features; structured data; and adapters such as SMS providers.
   - `MediaLibraryPort` adds files to the media library with the same checks as
     an upload, and can fill in credit and licence.
   - `NotifierPort` lets the core and any plugin notify people without
-    requiring the `notifications` plugin, which delivers by each user's
+    requiring the `notifications-helper` plugin, which delivers by each user's
     preferences when enabled.
 - **Public value types:** ids, `Locale`, `Slug`, `SiteOwnedInterface`.
 - **Base classes:** `AbstractPlugin` (bundle base class and manifest reader)
@@ -230,7 +230,7 @@ imports:
 parameters:
   sightpress.plugin_namespace: 'SightPress\\Plugin\\Events'
   # Only with `requires`: the Contract\ namespaces the plugin may use, as one regex.
-  sightpress.required_contracts: '^SightPress\\Plugin\\Ai\\Contract\\.*'
+  sightpress.required_contracts: '^SightPress\\Plugin\\AiHelper\\Contract\\.*'
 ```
 
 Plugin code may use the Plugin API (not the dev-only `TestKit` and `Quality`

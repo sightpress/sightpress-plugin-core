@@ -66,7 +66,7 @@ final class DtoTest extends TestCase
     {
         $user = UserId::generate();
 
-        self::assertTrue(Recipients::byCapability('forms.read')->isByCapability());
+        self::assertTrue(Recipients::byCapability('form-builder.read')->isByCapability());
         self::assertTrue(Recipients::concernedUser($user)->isConcernedUser());
         self::assertSame([$user->toString()], Recipients::users([$user])->values);
         self::assertFalse(Recipients::users([$user])->isByCapability());
@@ -74,9 +74,9 @@ final class DtoTest extends TestCase
 
     public function testNotificationRequest(): void
     {
-        $request = new NotificationRequest('forms.submitted', SiteId::generate(), ['form' => 'x'], Recipients::byCapability('forms.read'));
+        $request = new NotificationRequest('form-builder.submitted', SiteId::generate(), ['form' => 'x'], Recipients::byCapability('form-builder.read'));
 
-        self::assertSame('forms.submitted', $request->type);
+        self::assertSame('form-builder.submitted', $request->type);
     }
 
     public function testNotificationRequestNeedsAType(): void

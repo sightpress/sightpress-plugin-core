@@ -59,6 +59,14 @@ final class PluginApiSurfaceTest extends TestCase
         self::assertStringStartsWith(PluginApi::MAJOR.'.', PluginApi::VERSION);
     }
 
+    public function testApiVersionIsThePackageVersion(): void
+    {
+        $manifest = json_decode((string) file_get_contents(\dirname(__DIR__).'/.release-please-manifest.json'), true, flags: \JSON_THROW_ON_ERROR);
+
+        self::assertIsArray($manifest);
+        self::assertSame($manifest['.'] ?? null, PluginApi::VERSION, 'PluginApi::VERSION must match the released package version.');
+    }
+
     public function testExtensionTagsAreUnique(): void
     {
         $tags = new \ReflectionClass(ExtensionTag::class)->getConstants();

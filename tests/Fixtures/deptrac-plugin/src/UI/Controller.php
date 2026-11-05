@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Acme\Events\UI;
 
 use Acme\Events\Domain\Event;
-use SightPress\Plugin\Ai\Contract\Ai;
+use SightPress\Plugin\AiHelper\Contract\Ai;
 use Symfony\Component\HttpFoundation\Response;
 
 final readonly class Controller

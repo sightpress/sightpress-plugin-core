@@ -6,7 +6,7 @@ namespace SightPress\Plugin\Core\ExtensionPoint;
 
 /**
  * An SMS provider. Install-level: collected from plugins available on the
- * install, used only by the `notifications` plugin. Credentials come only
+ * install, used only by the `notifications-helper` plugin. Credentials come only
  * from env vars, `*_FILE` or the vault, and are never logged.
  */
 interface SmsProviderInterface

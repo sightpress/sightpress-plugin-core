@@ -50,9 +50,9 @@ final class DeptracPluginConfigTest extends TestCase
             'Acme\Events\Domain\Event must not depend on Acme\Events\UI\Controller (Domain on UI)',
             'Acme\Events\Domain\Event must not depend on SightPress\Core\Content\Domain\Content (Domain on Core)',
             // Required contracts are for Application, Infrastructure and UI, not the domain.
-            'Acme\Events\Domain\Event must not depend on SightPress\Plugin\Ai\Contract\Ai (Domain on RequiredContract)',
+            'Acme\Events\Domain\Event must not depend on SightPress\Plugin\AiHelper\Contract\Ai (Domain on RequiredContract)',
             'Acme\Events\Domain\Event must not depend on SightPress\Plugin\Core\TestKit\PluginTestCase (Domain on PluginCoreDev)',
-            'Acme\Events\Domain\Event must not depend on SightPress\Plugin\Forms\Domain\Form (Domain on OtherPlugin)',
+            'Acme\Events\Domain\Event must not depend on SightPress\Plugin\FormBuilder\Domain\Form (Domain on OtherPlugin)',
         ], $violations);
         self::assertSame(6, $report['Report']['Violations'] ?? null);
         self::assertSame(0, $report['Report']['Uncovered'] ?? null, 'Every dependency of the fixture must fall in a layer.');
