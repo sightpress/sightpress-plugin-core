@@ -10,7 +10,7 @@ namespace SightPress\Plugin\Core;
  */
 final class PluginApi
 {
-    public const string VERSION = '1.1.0'; // x-release-please-version
+    public const string VERSION = '1.2.0'; // x-release-please-version
 
     public const int MAJOR = 1;
 
