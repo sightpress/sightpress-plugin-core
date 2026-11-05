@@ -6,8 +6,10 @@ declare(strict_types=1);
 // Checks that runtime dependency licences are compatible with GPL-2.0-or-later.
 // Usage: vendor/bin/sightpress-check-licenses [project-dir]
 
-foreach ([__DIR__.'/../vendor/autoload.php', __DIR__.'/../../../autoload.php'] as $autoload) {
-    if (is_file($autoload)) {
+// Composer's vendor/bin proxy names the project's autoloader; it is the only reliable
+// path when this package is a symlinked path repository (sibling checkouts, plugin CI).
+foreach ([$GLOBALS['_composer_autoload_path'] ?? null, __DIR__.'/../vendor/autoload.php', __DIR__.'/../../../autoload.php'] as $autoload) {
+    if (is_string($autoload) && is_file($autoload)) {
         require $autoload;
         break;
     }
