@@ -34,13 +34,15 @@ personal-data features; structured data; and adapters such as SMS providers.
   - `MediaLibraryPort` adds files to the media library with the same checks as
     an upload, and can fill in credit and licence.
   - `NotifierPort` lets the core and any plugin notify people without
-    requiring the `notifications` plugin, which delivers by each user's
+    requiring the `notifications-helper` plugin, which delivers by each user's
     preferences when enabled.
 - **Public value types:** ids, `Locale`, `Slug`, `SiteOwnedInterface`.
 - **Base classes:** `AbstractPlugin` (bundle base class and manifest reader)
   and the settings-schema builder.
 - **Test kit:** `PluginTestCase` (site isolation, plugin-disabled checks,
-  XLIFF coverage, round-trip, security and query-count checks) plus Playwright
+  XLIFF coverage, round-trip, security and query-count checks),
+  `AccessibleHtmlAssertions` (page structure, labels, the error summary,
+  `aria-describedby` and focus targets in any `WebTestCase`) plus Playwright
   and axe helpers (`testkit/playwright/`).
 - **Shared quality rules:** PHPStan rules, the Twig lint
   (`vendor/bin/sightpress-lint-twig`), stylelint rules
@@ -230,7 +232,7 @@ imports:
 parameters:
   sightpress.plugin_namespace: 'SightPress\\Plugin\\Events'
   # Only with `requires`: the Contract\ namespaces the plugin may use, as one regex.
-  sightpress.required_contracts: '^SightPress\\Plugin\\Ai\\Contract\\.*'
+  sightpress.required_contracts: '^SightPress\\Plugin\\AiHelper\\Contract\\.*'
 ```
 
 Plugin code may use the Plugin API (not the dev-only `TestKit` and `Quality`

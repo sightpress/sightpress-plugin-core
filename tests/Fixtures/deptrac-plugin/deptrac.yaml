@@ -3,4 +3,4 @@ imports:
   - ../../../quality/deptrac/plugin.yaml
 parameters:
   sightpress.plugin_namespace: 'Acme\\Events'
-  sightpress.required_contracts: '^SightPress\\Plugin\\Ai\\Contract\\.*'
+  sightpress.required_contracts: '^SightPress\\Plugin\\AiHelper\\Contract\\.*'

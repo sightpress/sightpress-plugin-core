@@ -7,7 +7,7 @@ namespace SightPress\Plugin\Core\ExtensionPoint;
 use SightPress\Plugin\Core\Dto\NotificationRequest;
 
 /**
- * Filled only by the `notifications` plugin, one service per site. With
+ * Filled only by the `notifications-helper` plugin, one service per site. With
  * nothing filling it, the core router drops events. Core security alerts are
  * always emailed first; delivery can add channels, never remove that email.
  */

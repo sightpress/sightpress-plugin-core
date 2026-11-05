@@ -41,6 +41,9 @@
           "section": "Chores",
           "hidden": true
         }
+      ],
+      "extra-files": [
+        "src/PluginApi.php"
       ]
     }
   }

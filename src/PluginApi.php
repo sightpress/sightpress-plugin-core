@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace SightPress\Plugin\Core;
 
 /**
- * The Plugin API version is the version of sightpress/plugin-core.
+ * The Plugin API version is the version of sightpress/plugin-core. release-please
+ * updates VERSION in every release PR (release-please-config.json, extra-files).
  */
 final class PluginApi
 {
-    public const string VERSION = '1.0.0';
+    public const string VERSION = '1.1.0'; // x-release-please-version
 
     public const int MAJOR = 1;
 

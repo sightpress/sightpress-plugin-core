@@ -33,7 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        repo: [core, plugin-template, plugin-ai, plugin-articles, plugin-community, plugin-forms, plugin-image-finder, plugin-import, plugin-newsletter, plugin-notifications]
+        repo: [core, plugin-template, plugin-ai-helper, plugin-articles, plugin-community-helper, plugin-form-builder, plugin-image-finder, plugin-file-importer, plugin-newsletter-manager, plugin-notifications-helper]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4

@@ -16,11 +16,11 @@ final class ManifestReaderTest extends TestCase
     private function composer(string $key = '', mixed $value = null): array
     {
         $block = [
-            'id' => 'forms',
+            'id' => 'form-builder',
             'api' => '^1.0',
-            'bundle' => 'SightPress\\Plugin\\Forms\\FormsPlugin',
+            'bundle' => 'SightPress\\Plugin\\FormBuilder\\FormBuilderPlugin',
             'requires' => [],
-            'capabilities' => ['forms.manage' => ['owner', 'admin']],
+            'capabilities' => ['form-builder.manage' => ['owner', 'admin']],
             'routes' => ['/{locale}/forms/{form}'],
             'admin_routes' => ['/admin/forms'],
             'locales' => ['en-GB', 'pt-BR'],
@@ -31,10 +31,10 @@ final class ManifestReaderTest extends TestCase
         }
 
         return [
-            'name' => 'sightpress/plugin-forms',
+            'name' => 'sightpress/plugin-form-builder',
             'type' => 'sightpress-plugin',
             'license' => 'GPL-2.0-or-later',
-            'description' => 'Forms',
+            'description' => 'Form builder',
             'extra' => ['sightpress' => $block],
         ];
     }
@@ -43,17 +43,17 @@ final class ManifestReaderTest extends TestCase
     {
         $manifest = new ManifestReader()->read($this->composer());
 
-        self::assertSame('forms', $manifest->id);
-        self::assertSame('sightpress/plugin-forms', $manifest->package);
+        self::assertSame('form-builder', $manifest->id);
+        self::assertSame('sightpress/plugin-form-builder', $manifest->package);
         self::assertSame('^1.0', $manifest->apiConstraint);
-        self::assertSame(['owner', 'admin'], $manifest->capabilities['forms.manage']);
-        self::assertTrue($manifest->declaresCapability('forms.manage'));
-        self::assertFalse($manifest->declaresCapability('forms.other'));
+        self::assertSame(['owner', 'admin'], $manifest->capabilities['form-builder.manage']);
+        self::assertTrue($manifest->declaresCapability('form-builder.manage'));
+        self::assertFalse($manifest->declaresCapability('form-builder.other'));
         self::assertSame(['api.example.org'], $manifest->outboundHosts);
         self::assertSame('pt-BR', $manifest->localeObjects()[1]->toString());
         self::assertFalse($manifest->isThirdParty());
         self::assertNull($manifest->vendor());
-        self::assertSame('forms', $manifest->slug());
+        self::assertSame('form_builder', $manifest->slug());
     }
 
     public function testThirdPartyIdHasAVendorPrefix(): void
@@ -117,7 +117,7 @@ final class ManifestReaderTest extends TestCase
 
     public function testRefusesBadCapabilities(): void
     {
-        $composer = $this->composer('capabilities', ['forms.manage' => 'owner']);
+        $composer = $this->composer('capabilities', ['form-builder.manage' => 'owner']);
 
         $this->expectException(ManifestException::class);
         new ManifestReader()->read($composer);
@@ -158,7 +158,7 @@ final class ManifestReaderTest extends TestCase
         file_put_contents($file, json_encode($this->composer(), \JSON_THROW_ON_ERROR));
 
         try {
-            self::assertSame('forms', new ManifestReader()->readFile($file)->id);
+            self::assertSame('form-builder', new ManifestReader()->readFile($file)->id);
         } finally {
             unlink($file);
         }

@@ -8,8 +8,8 @@ namespace SightPress\Plugin\Core\Settings;
  * Fluent builder for a SettingsSchema.
  *
  *     SettingsSchemaBuilder::create()
- *         ->group('forms.settings.general')
- *         ->text('sender_name', 'forms.settings.sender_name', required: true)
+ *         ->group('form-builder.settings.general')
+ *         ->text('sender_name', 'form-builder.settings.sender_name', required: true)
  *         ->build();
  */
 final class SettingsSchemaBuilder
