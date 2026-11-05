@@ -136,8 +136,9 @@ trait AccessibleHtmlAssertions
             $link = $summary->querySelector('a[href="#'.$this->cssString($fieldId).'"]');
             Assert::assertNotNull($link, \sprintf('The error summary has no link to field "%s".', $fieldId));
             Assert::assertStringContainsString($message, (string) $link->textContent, \sprintf('The error summary link to "%s" must say "%s".', $fieldId, $message));
-            if (null !== $document->getElementById($fieldId) && \in_array($document->getElementById($fieldId)?->localName, ['input', 'select', 'textarea'], true)) {
-                Assert::assertSame('true', $document->getElementById($fieldId)?->getAttribute('aria-invalid'), \sprintf('Field "%s" needs aria-invalid="true".', $fieldId));
+            $field = $document->getElementById($fieldId);
+            if ($field instanceof Element && \in_array($field->localName, ['input', 'select', 'textarea'], true)) {
+                Assert::assertSame('true', $field->getAttribute('aria-invalid'), \sprintf('Field "%s" needs aria-invalid="true".', $fieldId));
                 $this->assertDescribedBy($html, $fieldId, $message);
             }
         }
