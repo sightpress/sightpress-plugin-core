@@ -150,6 +150,58 @@ Without `--release`, unreviewed targets are only reported.
 
 Example: `vendor/bin/sightpress-check-translations translations my_plugin --manifest=composer.json --release`
 
+### `sightpress-translations-csv`
+
+Exports the XLIFF catalogues of one translation domain to CSV, one file per
+locale, for translators who work in a spreadsheet, and imports the CSV files
+back into the catalogues. The `en-GB` source catalogue isn't exported or
+imported: edit its XLIFF file directly.
+
+```sh
+vendor/bin/sightpress-translations-csv export <translations-dir> <domain> [--locales=de-DE,fr-FR | --manifest=composer.json] [--output=dir]
+vendor/bin/sightpress-translations-csv import <translations-dir> <domain> <file.csv> [<file.csv> ...] [--locale=de-DE] [--dry-run]
+```
+
+**Export** writes `<domain>.<locale>.csv` (for example `messages.pt-BR.csv`)
+into `--output` (default: the current directory). By default it exports the
+10 launch locales other than `en-GB`; `--manifest` exports the plugin's
+required locales and `--locales` the ones you list. Files are UTF-8 with a
+byte-order mark, so spreadsheets open them with the right characters. The
+columns are:
+
+| Column | Contents |
+|---|---|
+| `key` | The message key. Don't change it. |
+| `source` | The English (United Kingdom) text. |
+| `fallback` | For a regional override such as `pt-BR` or `de-CH`, the base catalogue's text it falls back to; empty otherwise. |
+| `target` | The translation. Empty when there is none yet (for an override: when it doesn't differ from the fallback). |
+| `state` | The XLIFF state, such as `needs-review-translation` or `translated`. |
+| `note` | The source catalogue's note, such as `neutral`. |
+
+**Import** reads the locale from the file name, or from `--locale` for a
+single file. Only `key` and `target` are needed, in any order; `state` is
+optional and the other columns are ignored. Comma, semicolon and tab
+separators are all accepted. For each row:
+
+- A changed target is stored as `needs-review-translation`, unless the row
+  also changes the state: that is taken as the reviewer's decision. Machine
+  and AI drafts therefore stay unreviewed until someone signs them off.
+- An unchanged target with a different state takes the new state (how a
+  reviewer signs a target off: set the state to `translated`).
+- An empty target leaves the unit as it is. Import never deletes anything.
+- A key missing from the catalogue is added (with its English source); a
+  missing catalogue file is created.
+
+A key that isn't in the source catalogue, a repeated key, an unknown state,
+text that isn't UTF-8 or a control character is reported with its row
+number, and that file's catalogue is not written at all. Fix the file and
+import it again. `--dry-run` reports what would change and writes nothing.
+Units that are left alone keep their exact bytes, so the catalogue diff shows
+only what was imported. Run `sightpress-check-translations` afterwards.
+
+Example: `vendor/bin/sightpress-translations-csv export translations messages --output=var/csv`, then
+`vendor/bin/sightpress-translations-csv import translations messages var/csv/*.csv`
+
 ### `sightpress-lint-twig`
 
 Lints every `*.twig` file under the given directories (default `templates`).

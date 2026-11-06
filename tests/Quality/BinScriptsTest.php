@@ -20,6 +20,7 @@ final class BinScriptsTest extends TestCase
         yield 'licences' => ['sightpress-check-licenses'];
         yield 'translations' => ['sightpress-check-translations'];
         yield 'twig' => ['sightpress-lint-twig'];
+        yield 'translations csv' => ['sightpress-translations-csv'];
     }
 
     #[DataProvider('scripts')]

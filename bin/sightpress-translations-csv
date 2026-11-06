@@ -1,0 +1,111 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+// Exports XLIFF catalogues to CSV for translators who work in a spreadsheet, and imports the CSV back.
+// Usage:
+//   vendor/bin/sightpress-translations-csv export <translations-dir> <domain> [--locales=de-DE,fr-FR | --manifest=composer.json] [--output=dir]
+//   vendor/bin/sightpress-translations-csv import <translations-dir> <domain> <file.csv> [<file.csv> ...] [--locale=de-DE] [--dry-run]
+
+// Composer's vendor/bin proxy names the project's autoloader; it is the only reliable
+// path when this package is a symlinked path repository (sibling checkouts, plugin CI).
+foreach ([$GLOBALS['_composer_autoload_path'] ?? null, __DIR__.'/../vendor/autoload.php', __DIR__.'/../../../autoload.php'] as $autoload) {
+    if (is_string($autoload) && is_file($autoload)) {
+        require $autoload;
+        break;
+    }
+}
+
+use SightPress\Plugin\Core\Manifest\ManifestReader;
+use SightPress\Plugin\Core\Quality\TranslationCsv;
+use SightPress\Plugin\Core\Value\Locale;
+
+$usage = <<<'TXT'
+    Usage:
+      sightpress-translations-csv export <translations-dir> <domain> [--locales=de-DE,fr-FR | --manifest=composer.json] [--output=dir]
+      sightpress-translations-csv import <translations-dir> <domain> <file.csv> [<file.csv> ...] [--locale=de-DE] [--dry-run]
+
+    TXT;
+
+$args = array_values(array_filter(array_slice($argv, 1), static fn (string $a): bool => !str_starts_with($a, '--')));
+$dryRun = in_array('--dry-run', $argv, true);
+$options = [];
+foreach (array_slice($argv, 1) as $argument) {
+    if (1 === preg_match('/^--(manifest|locales|locale|output)=(.+)$/', $argument, $match)) {
+        $options[$match[1]] = $match[2];
+    }
+}
+
+$command = $args[0] ?? null;
+if (!in_array($command, ['export', 'import'], true) || count($args) < ('import' === $command ? 4 : 3)) {
+    fwrite(\STDERR, $usage);
+    exit(2);
+}
+[, $directory, $domain] = $args;
+$csv = new TranslationCsv();
+
+try {
+    if ('export' === $command) {
+        if (isset($options['manifest'])) {
+            $codes = new ManifestReader()->readFile($options['manifest'])->requiredLocales();
+        } elseif (isset($options['locales'])) {
+            $codes = array_values(array_filter(array_map('trim', explode(',', $options['locales']))));
+        } else {
+            $codes = Locale::LAUNCH;
+        }
+        $locales = array_values(array_filter(
+            array_map(static fn (string $code): Locale => Locale::fromString($code), $codes),
+            static fn (Locale $locale): bool => 'en' !== $locale->catalogue() || isset($options['locales']),
+        ));
+        $output = rtrim($options['output'] ?? '.', '/');
+        if (!is_dir($output) && !mkdir($output, 0o777, true) && !is_dir($output)) {
+            throw new InvalidArgumentException(sprintf('The output directory %s could not be created.', $output));
+        }
+
+        $total = count($locales);
+        foreach ($locales as $index => $locale) {
+            $file = $output.'/'.TranslationCsv::fileName($domain, $locale);
+            if (false === file_put_contents($file, $csv->export($directory, $domain, $locale))) {
+                throw new InvalidArgumentException(sprintf('%s could not be written.', $file));
+            }
+            echo sprintf("File %d of %d: wrote %s (%s).\n", $index + 1, $total, $file, $locale->toString());
+        }
+        echo sprintf("Export of domain \"%s\": Passed. %d CSV %s written.\n", $domain, $total, 1 === $total ? 'file' : 'files');
+        exit(0);
+    }
+
+    $files = array_slice($args, 3);
+    if (isset($options['locale']) && count($files) > 1) {
+        throw new InvalidArgumentException('--locale works with one CSV file only. Name the files "<domain>.<locale>.csv" to import several at once.');
+    }
+
+    $total = count($files);
+    $failed = 0;
+    echo $dryRun ? "Dry run: no catalogue is written.\n" : '';
+    foreach ($files as $index => $file) {
+        $locale = isset($options['locale']) ? Locale::fromString($options['locale']) : TranslationCsv::localeFromFileName($file, $domain);
+        if (null === $locale) {
+            throw new InvalidArgumentException(sprintf('The locale of %s is unknown. Name the file "%s.<locale>.csv" (for example %s) or pass --locale=de-DE.', $file, $domain, TranslationCsv::fileName($domain, Locale::fromString('de-DE'))));
+        }
+        $result = $csv->import($directory, $domain, $locale, $file, $dryRun);
+        echo sprintf("File %d of %d: %s into %s (%s): %s.\n", $index + 1, $total, $file, basename($result->file), $locale->toString(), $result->summary());
+        foreach ($result->problems() as $problem) {
+            echo "Problem: $problem\n";
+        }
+        if (!$result->passes()) {
+            ++$failed;
+            echo sprintf("%s was not changed. Fix the problems above and import the file again.\n", basename($result->file));
+        }
+    }
+
+    if (0 === $failed) {
+        echo sprintf("Import of domain \"%s\": Passed. Check the catalogues with: vendor/bin/sightpress-check-translations %s %s\n", $domain, $directory, $domain);
+        exit(0);
+    }
+    echo sprintf("Import of domain \"%s\": Failed. %d of %d %s had problems.\n", $domain, $failed, $total, 1 === $total ? 'file' : 'files');
+    exit(1);
+} catch (InvalidArgumentException $e) {
+    fwrite(\STDERR, 'Error: '.$e->getMessage()."\n");
+    exit(2);
+}
